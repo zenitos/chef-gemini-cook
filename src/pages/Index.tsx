@@ -2,7 +2,10 @@ import { useState } from "react";
 import { RecipeSearch } from "@/components/RecipeSearch";
 import { RecipeCard } from "@/components/RecipeCard";
 import { Footer } from "@/components/Footer";
-import { GeminiService } from "@/services/geminiService";
+import { Header } from "@/components/Header";
+import { RecipeHistory } from "@/components/RecipeHistory";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { ChefHat, Sparkles } from "lucide-react";
 import heroImage from "@/assets/cooking-hero.jpg";
@@ -20,20 +23,38 @@ interface Recipe {
 const Index = () => {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleSearch = async (query: string, apiKey: string) => {
+  const handleSearch = async (query: string) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to generate recipes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     setRecipe(null);
 
     try {
-      const geminiService = new GeminiService(apiKey);
-      const generatedRecipe = await geminiService.generateRecipe(query);
-      setRecipe(generatedRecipe);
+      const { data, error } = await supabase.functions.invoke('generate-recipe', {
+        body: { query },
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
+
+      setRecipe(data.recipe);
       
       toast({
         title: "Recipe Generated!",
-        description: `Found a delicious recipe for ${generatedRecipe.name}`,
+        description: `Found a delicious recipe for ${data.recipe.name}`,
       });
     } catch (error) {
       console.error("Error generating recipe:", error);
@@ -49,6 +70,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header onShowHistory={() => setShowHistory(true)} />
+      
       {/* Hero Section */}
       <div className="relative">
         <div 
@@ -123,6 +146,12 @@ const Index = () => {
         )}
       </div>
       <Footer />
+      
+      <RecipeHistory 
+        open={showHistory} 
+        onClose={() => setShowHistory(false)} 
+        onSelectRecipe={setRecipe}
+      />
     </div>
   );
 };
