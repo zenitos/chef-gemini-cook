@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { RecipeSearch } from "@/components/RecipeSearch";
 import { RecipeCard } from "@/components/RecipeCard";
+import { Footer } from "@/components/Footer";
 import { GeminiService } from "@/services/geminiService";
 import { useToast } from "@/hooks/use-toast";
 import { ChefHat, Sparkles } from "lucide-react";
@@ -60,17 +61,13 @@ const Index = () => {
               <div className="flex items-center justify-center gap-3 mb-4">
                 <ChefHat className="w-12 h-12 text-white" />
                 <h1 className="text-5xl md:text-6xl font-heading font-bold text-white">
-                  AI Recipe Chef
+                  Recipefy
                 </h1>
                 <Sparkles className="w-12 h-12 text-golden animate-bounce-gentle" />
               </div>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
                 Transform any ingredient or craving into a personalized recipe with the power of AI
               </p>
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-                <Sparkles className="w-5 h-5 text-golden" />
-                <span className="text-white font-medium">Powered by Google Gemini AI</span>
-              </div>
             </div>
           </div>
         </div>
@@ -125,6 +122,7 @@ const Index = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
