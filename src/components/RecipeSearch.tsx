@@ -8,9 +8,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 interface RecipeSearchProps {
   onSearch: (query: string) => void;
   isLoading: boolean;
+  canGenerate?: boolean;
+  remainingRecipes?: number;
 }
 
-export const RecipeSearch = ({ onSearch, isLoading }: RecipeSearchProps) => {
+export const RecipeSearch = ({ onSearch, isLoading, canGenerate = true, remainingRecipes = 0 }: RecipeSearchProps) => {
   const [query, setQuery] = useState("");
 
   const handleSearch = () => {
@@ -51,7 +53,7 @@ export const RecipeSearch = ({ onSearch, isLoading }: RecipeSearchProps) => {
             </div>
             <Button 
               onClick={handleSearch}
-              disabled={isLoading || !query.trim()}
+              disabled={isLoading || !query.trim() || !canGenerate}
               className="h-12 px-6 bg-gradient-warm hover:shadow-warm transition-all duration-300"
             >
               {isLoading ? (
@@ -59,15 +61,29 @@ export const RecipeSearch = ({ onSearch, isLoading }: RecipeSearchProps) => {
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   Cooking...
                 </div>
+              ) : !canGenerate ? (
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Limit Reached
+                </div>
               ) : (
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  Get Recipe
+                  Get Recipe ({remainingRecipes} left)
                 </div>
               )}
             </Button>
           </div>
 
+
+          {!canGenerate && (
+            <Alert className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-950">
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-700 dark:text-orange-300">
+                You've reached your daily recipe limit. Sign up for more recipes or try again tomorrow!
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="flex flex-wrap gap-2 justify-center">
             {[
@@ -84,7 +100,7 @@ export const RecipeSearch = ({ onSearch, isLoading }: RecipeSearchProps) => {
                 size="sm"
                 onClick={() => setQuery(suggestion)}
                 className="text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
-                disabled={isLoading}
+                disabled={isLoading || !canGenerate}
               >
                 {suggestion}
               </Button>

@@ -4,7 +4,10 @@ import { RecipeCard } from "@/components/RecipeCard";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { RecipeHistory } from "@/components/RecipeHistory";
+import { RecipeLimitBanner } from "@/components/RecipeLimitBanner";
+import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useRecipeLimit } from "@/hooks/useRecipeLimit";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { ChefHat, Sparkles } from "lucide-react";
@@ -24,16 +27,31 @@ const Index = () => {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { 
+    usage, 
+    maxRecipes, 
+    remainingRecipes, 
+    canGenerateRecipe, 
+    incrementUsage,
+    loading: limitLoading 
+  } = useRecipeLimit();
 
   const handleSearch = async (query: string) => {
-    if (!user) {
+    // Check recipe limit first
+    if (!canGenerateRecipe) {
       toast({
-        title: "Authentication Required",
-        description: "Please sign in to generate recipes.",
+        title: "Daily Limit Reached",
+        description: user 
+          ? "You've used all 10 recipes for today. Try again tomorrow!" 
+          : "You've used all 3 free recipes for today. Sign up for 10 recipes per day!",
         variant: "destructive",
       });
+      if (!user) {
+        setShowAuthModal(true);
+      }
       return;
     }
 
@@ -41,20 +59,35 @@ const Index = () => {
     setRecipe(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-recipe', {
-        body: { query },
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
-      });
+      if (user) {
+        // For authenticated users, use the edge function
+        const { data, error } = await supabase.functions.invoke('generate-recipe', {
+          body: { query },
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        setRecipe(data.recipe);
+      } else {
+        // For guest users, use direct API call (you'll need to implement this)
+        // For now, show a message to sign up
+        toast({
+          title: "Sign Up Required",
+          description: "Please create an account to generate recipes with AI.",
+          variant: "destructive",
+        });
+        setShowAuthModal(true);
+        return;
+      }
 
-      setRecipe(data.recipe);
+      // Increment usage count
+      incrementUsage();
       
       toast({
         title: "Recipe Generated!",
-        description: `Found a delicious recipe for ${data.recipe.name}`,
+        description: `Found a delicious recipe! ${remainingRecipes - 1} recipes remaining today.`,
       });
     } catch (error) {
       console.error("Error generating recipe:", error);
@@ -98,9 +131,26 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12 space-y-12">
+        {/* Recipe Limit Banner */}
+        {!limitLoading && (
+          <div className="animate-slide-up">
+            <RecipeLimitBanner
+              usage={usage}
+              maxRecipes={maxRecipes}
+              remainingRecipes={remainingRecipes}
+              onSignUp={() => setShowAuthModal(true)}
+            />
+          </div>
+        )}
+
         {/* Search Section */}
         <div className="animate-slide-up">
-          <RecipeSearch onSearch={handleSearch} isLoading={isLoading} />
+          <RecipeSearch 
+            onSearch={handleSearch} 
+            isLoading={isLoading}
+            canGenerate={canGenerateRecipe}
+            remainingRecipes={remainingRecipes}
+          />
         </div>
 
         {/* Recipe Display */}
@@ -151,6 +201,11 @@ const Index = () => {
         open={showHistory} 
         onClose={() => setShowHistory(false)} 
         onSelectRecipe={setRecipe}
+      />
+      
+      <AuthModal 
+        open={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
       />
     </div>
   );
