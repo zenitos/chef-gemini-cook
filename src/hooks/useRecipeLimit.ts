@@ -61,7 +61,8 @@ export const useRecipeLimit = () => {
     usage: usage.count,
     maxRecipes,
     remainingRecipes,
-    canGenerateRecipe,
+    canGenerateRecipe: remainingRecipes > 0, // Allow generation if recipes remain
+    isLastFreeRecipe: !user && remainingRecipes === 1, // Flag for showing auth prompt after generation
     incrementUsage,
     resetUsage,
     loading
