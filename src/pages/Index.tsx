@@ -8,7 +8,7 @@ import { RecipeLimitBanner } from "@/components/RecipeLimitBanner";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecipeLimit } from "@/hooks/useRecipeLimit";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ChefHat, Sparkles } from "lucide-react";
 import heroImage from "@/assets/cooking-hero.jpg";
