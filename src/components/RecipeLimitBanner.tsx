@@ -35,7 +35,7 @@ export const RecipeLimitBanner = ({
                 {user ? 'Premium Account' : 'Guest User'}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {remainingRecipes} of {maxRecipes} recipes remaining today
+                {user ? `${remainingRecipes} of ${maxRecipes} recipes remaining today` : 'Sign up to generate recipes'}
               </p>
             </div>
           </div>
@@ -52,7 +52,7 @@ export const RecipeLimitBanner = ({
               />
             </div>
 
-            {!user && remainingRecipes > 0 && (
+            {!user && (
               <Button 
                 onClick={onSignUp}
                 variant="outline"
@@ -60,7 +60,7 @@ export const RecipeLimitBanner = ({
                 className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 <Crown className="w-4 h-4 mr-2" />
-                Upgrade to 10/day
+                Sign Up for 10/day
               </Button>
             )}
 

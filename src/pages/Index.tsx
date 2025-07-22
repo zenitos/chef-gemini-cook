@@ -35,7 +35,6 @@ const Index = () => {
     maxRecipes, 
     remainingRecipes, 
     canGenerateRecipe, 
-    isLastFreeRecipe,
     incrementUsage,
     loading: limitLoading 
   } = useRecipeLimit();
@@ -47,7 +46,7 @@ const Index = () => {
         title: "Daily Limit Reached",
         description: user 
           ? "You've used all 10 recipes for today. Try again tomorrow!" 
-          : "You've used all 3 free recipes for today. Sign up for 10 recipes per day!",
+          : "Please sign up to start generating recipes with AI!",
         variant: "destructive",
       });
       if (!user) {
@@ -60,26 +59,27 @@ const Index = () => {
     setRecipe(null);
 
     try {
-      if (user) {
-        // For authenticated users, use the edge function
-        const { data, error } = await supabase.functions.invoke('generate-recipe', {
-          body: { query },
-          headers: {
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-          }
+      if (!user) {
+        // Require authentication for recipe generation
+        toast({
+          title: "Sign Up Required",
+          description: "Please create an account to generate recipes with AI.",
+          variant: "destructive",
         });
-
-        if (error) throw error;
-        setRecipe(data.recipe);
-      } else {
-        // For guest users, use direct Gemini API call
-        const { GeminiService } = await import("@/services/geminiService");
-        
-        // You'll need to add your Gemini API key here or use environment variable
-        const geminiService = new GeminiService("YOUR_GEMINI_API_KEY");
-        const generatedRecipe = await geminiService.generateRecipe(query);
-        setRecipe(generatedRecipe);
+        setShowAuthModal(true);
+        return;
       }
+
+      // For authenticated users, use the edge function
+      const { data, error } = await supabase.functions.invoke('generate-recipe', {
+        body: { query },
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      setRecipe(data.recipe);
 
       // Increment usage count
       incrementUsage();
@@ -91,12 +91,6 @@ const Index = () => {
         description: `Found a delicious recipe! ${remainingAfterGeneration} recipes remaining today.`,
       });
 
-      // If this was the last free recipe for a guest user, show auth modal
-      if (isLastFreeRecipe) {
-        setTimeout(() => {
-          setShowAuthModal(true);
-        }, 2000); // Show modal after 2 seconds to let user see the recipe first
-      }
     } catch (error) {
       console.error("Error generating recipe:", error);
       toast({
