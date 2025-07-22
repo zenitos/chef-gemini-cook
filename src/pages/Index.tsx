@@ -46,7 +46,7 @@ const Index = () => {
         title: "Daily Limit Reached",
         description: user 
           ? "You've used all 10 recipes for today. Try again tomorrow!" 
-          : "Please sign up to start generating recipes with AI!",
+          : "You've used all 3 free recipes for today. Sign up for 10 recipes daily!",
         variant: "destructive",
       });
       if (!user) {
@@ -59,23 +59,18 @@ const Index = () => {
     setRecipe(null);
 
     try {
-      if (!user) {
-        // Require authentication for recipe generation
-        toast({
-          title: "Sign Up Required",
-          description: "Please create an account to generate recipes with AI.",
-          variant: "destructive",
-        });
-        setShowAuthModal(true);
-        return;
+      // Use the edge function for both guests and authenticated users
+      const session = await supabase.auth.getSession();
+      const headers: Record<string, string> = {};
+      
+      // Add auth header only if user is authenticated
+      if (session.data.session?.access_token) {
+        headers.Authorization = `Bearer ${session.data.session.access_token}`;
       }
 
-      // For authenticated users, use the edge function
       const { data, error } = await supabase.functions.invoke('generate-recipe', {
         body: { query },
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
-        }
+        headers
       });
 
       if (error) throw error;
@@ -86,9 +81,15 @@ const Index = () => {
       
       // Show success message
       const remainingAfterGeneration = remainingRecipes - 1;
+      const message = user 
+        ? `Found a delicious recipe! ${remainingAfterGeneration} recipes remaining today.`
+        : remainingAfterGeneration > 0 
+          ? `Found a delicious recipe! ${remainingAfterGeneration} free recipes remaining today.`
+          : "Found a delicious recipe! Sign up for 10 recipes daily instead of 3!";
+      
       toast({
         title: "Recipe Generated!",
-        description: `Found a delicious recipe! ${remainingAfterGeneration} recipes remaining today.`,
+        description: message,
       });
 
     } catch (error) {

@@ -34,18 +34,14 @@ Deno.serve(async (req) => {
       }
     )
 
-    // Get the authenticated user
+    // Get the authenticated user (optional for guests)
     const {
       data: { user },
       error: userError,
     } = await supabaseClient.auth.getUser()
 
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    // Allow both authenticated users and guests
+    const isGuest = userError || !user
 
     // Get request body
     const { query } = await req.json()
@@ -58,7 +54,7 @@ Deno.serve(async (req) => {
     }
 
     // Get Gemini API key from secrets
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY')
+    const geminiApiKey = Deno.env.get('GEMINIAI_API_KEY')
     if (!geminiApiKey) {
       return new Response(
         JSON.stringify({ error: 'Gemini API key not configured' }),
@@ -103,24 +99,26 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Save recipe to database
-    const { error: insertError } = await supabaseClient
-      .from('recipes')
-      .insert({
-        user_id: user.id,
-        name: recipe.name,
-        ingredients: recipe.ingredients,
-        instructions: recipe.instructions,
-        cooking_time: recipe.cookingTime,
-        servings: recipe.servings,
-        difficulty: recipe.difficulty,
-        tips: recipe.tips,
-        search_query: query,
-      })
+    // Save recipe to database (only for authenticated users)
+    if (!isGuest && user) {
+      const { error: insertError } = await supabaseClient
+        .from('recipes')
+        .insert({
+          user_id: user.id,
+          name: recipe.name,
+          ingredients: recipe.ingredients,
+          instructions: recipe.instructions,
+          cooking_time: recipe.cookingTime,
+          servings: recipe.servings,
+          difficulty: recipe.difficulty,
+          tips: recipe.tips,
+          search_query: query,
+        })
 
-    if (insertError) {
-      console.error('Failed to save recipe:', insertError)
-      // Still return the recipe even if saving fails
+      if (insertError) {
+        console.error('Failed to save recipe:', insertError)
+        // Still return the recipe even if saving fails
+      }
     }
 
     return new Response(

@@ -12,9 +12,9 @@ export const useRecipeLimit = () => {
   const [loading, setLoading] = useState(true)
 
   const today = new Date().toDateString()
-  const maxRecipes = user ? 10 : 0 // 10 for logged-in users, 0 for guests (require signup)
+  const maxRecipes = user ? 10 : 3 // 10 for logged-in users, 3 for guests
   const remainingRecipes = Math.max(0, maxRecipes - usage.count)
-  const canGenerateRecipe = user ? remainingRecipes > 0 : false
+  const canGenerateRecipe = remainingRecipes > 0
 
   useEffect(() => {
     const loadUsage = () => {
@@ -61,8 +61,8 @@ export const useRecipeLimit = () => {
     usage: usage.count,
     maxRecipes,
     remainingRecipes,
-    canGenerateRecipe: user ? remainingRecipes > 0 : false, // Require authentication
-    isLastFreeRecipe: false, // No longer needed since guests can't generate recipes
+    canGenerateRecipe: remainingRecipes > 0,
+    isLastFreeRecipe: !user && remainingRecipes === 1, // Show signup prompt on last guest recipe
     incrementUsage,
     resetUsage,
     loading
