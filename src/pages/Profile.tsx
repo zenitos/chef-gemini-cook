@@ -4,13 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
 import { RecipeHistory } from "@/components/RecipeHistory"
 import { useAuth } from "@/hooks/useAuth"
 import { useRecipeLimit } from "@/hooks/useRecipeLimit"
 import { useToast } from "@/hooks/use-toast"
-import { User, Calendar, ChefHat, History, LogOut, ArrowLeft } from "lucide-react"
+import { ProfileService, UserProfile } from "@/services/profileService"
+import { RecipeService } from "@/services/recipeService"
+import { User, Calendar, ChefHat, History, LogOut, ArrowLeft, Edit2, Save, X, TrendingUp } from "lucide-react"
 import { format } from "date-fns"
 
 const Profile = () => {
@@ -20,12 +24,50 @@ const Profile = () => {
   const navigate = useNavigate()
   const [showHistory, setShowHistory] = useState(false)
   const [signOutLoading, setSignOutLoading] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [editedName, setEditedName] = useState("")
+  const [recipeStats, setRecipeStats] = useState({
+    totalRecipes: 0,
+    recipesThisWeek: 0,
+    recipesThisMonth: 0,
+    favoriteIngredients: []
+  })
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [savingProfile, setSavingProfile] = useState(false)
 
   useEffect(() => {
     if (!user) {
       navigate("/")
+    } else {
+      loadUserData()
     }
   }, [user, navigate])
+
+  const loadUserData = async () => {
+    if (!user) return
+    
+    setLoadingProfile(true)
+    try {
+      // Load user profile
+      const userProfile = await ProfileService.getUserProfile()
+      setProfile(userProfile)
+      setEditedName(userProfile?.full_name || "")
+
+      // Load recipe statistics
+      const stats = await RecipeService.getRecipeStats()
+      setRecipeStats(stats)
+    } catch (error) {
+      console.error("Error loading user data:", error)
+      toast({
+        title: "Error loading profile",
+        description: "Failed to load your profile data.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoadingProfile(false)
+    }
+  }
 
   const handleSignOut = async () => {
     setSignOutLoading(true)
@@ -47,8 +89,55 @@ const Profile = () => {
     }
   }
 
+  const handleEditProfile = () => {
+    setIsEditing(true)
+    setEditedName(profile?.full_name || "")
+  }
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true)
+    try {
+      const updatedProfile = await ProfileService.updateProfile({
+        full_name: editedName.trim() || null
+      })
+      setProfile(updatedProfile)
+      setIsEditing(false)
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been successfully updated.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error updating profile",
+        description: "Failed to update your profile. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditedName(profile?.full_name || "")
+  }
+
   if (!user) {
     return null
+  }
+
+  if (loadingProfile) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header onShowHistory={() => setShowHistory(true)} />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="flex items-center justify-center h-64">
+            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   return (
@@ -76,27 +165,89 @@ const Profile = () => {
                 <User className="w-8 h-8 text-white" />
               </div>
               <div className="flex-1">
-                <CardTitle className="text-2xl">
-                  {user.user_metadata?.full_name || "Recipe Chef"}
-                </CardTitle>
-                <CardDescription className="text-lg">
-                  {user.email}
-                </CardDescription>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="full-name">Full Name</Label>
+                    <Input
+                      id="full-name"
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <CardTitle className="text-2xl">
+                      {profile?.full_name || user.user_metadata?.full_name || "Recipe Chef"}
+                    </CardTitle>
+                    <CardDescription className="text-lg">
+                      {user.email}
+                    </CardDescription>
+                  </>
+                )}
               </div>
-              <Badge variant="secondary" className="text-sm">
-                Premium Member
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-sm">
+                  Premium Member
+                </Badge>
+                {isEditing ? (
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      onClick={handleSaveProfile}
+                      disabled={savingProfile}
+                    >
+                      {savingProfile ? (
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={savingProfile}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleEditProfile}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </CardHeader>
           </Card>
 
           {/* Account Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Recipes
+                </CardTitle>
+                <ChefHat className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{recipeStats.totalRecipes}</div>
+                <p className="text-xs text-muted-foreground">
+                  recipes saved
+                </p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Recipes Today
                 </CardTitle>
-                <ChefHat className="w-4 h-4 text-muted-foreground" />
+                <Calendar className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{usage}</div>
@@ -109,16 +260,16 @@ const Profile = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Remaining
+                  This Week
                 </CardTitle>
-                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <TrendingUp className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {remainingRecipes}
+                <div className="text-2xl font-bold text-blue-600">
+                  {recipeStats.recipesThisWeek}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  recipes left today
+                  recipes created
                 </p>
               </CardContent>
             </Card>
@@ -126,16 +277,16 @@ const Profile = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                  Member Since
+                  Remaining Today
                 </CardTitle>
                 <User className="w-4 h-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {format(new Date(user.created_at), "MMM yyyy")}
+                <div className="text-2xl font-bold text-green-600">
+                  {remainingRecipes}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Account created
+                  recipes left
                 </p>
               </CardContent>
             </Card>
@@ -156,7 +307,7 @@ const Profile = () => {
                     Full Name
                   </label>
                   <p className="text-sm">
-                    {user.user_metadata?.full_name || "Not provided"}
+                    {profile?.full_name || user.user_metadata?.full_name || "Not provided"}
                   </p>
                 </div>
                 <div>
@@ -179,6 +330,22 @@ const Profile = () => {
                     {user.last_sign_in_at 
                       ? format(new Date(user.last_sign_in_at), "MMM dd, yyyy 'at' HH:mm")
                       : "Unknown"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Member Since
+                  </label>
+                  <p className="text-sm">
+                    {format(new Date(user.created_at), "MMMM dd, yyyy")}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">
+                    Recipes This Month
+                  </label>
+                  <p className="text-sm">
+                    {recipeStats.recipesThisMonth} recipes created
                   </p>
                 </div>
               </div>
