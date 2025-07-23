@@ -126,6 +126,11 @@ const Index = () => {
               </div>
               <p className="text-xl md:text-2xl text-white/90 max-w-2xl mx-auto">
                 Transform any ingredient or craving into a personalized recipe with the power of AI
+                {!user && (
+                  <span className="block text-lg text-golden mt-2">
+                    Get 3 free recipes daily - No signup required!
+                  </span>
+                )}
               </p>
             </div>
           </div>

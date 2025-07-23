@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -9,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/useAuth"
 import { useToast } from "@/hooks/use-toast"
-import { User, LogOut, History, ChefHat } from "lucide-react"
+import { User, LogOut, History, ChefHat, Settings } from "lucide-react"
 import { AuthModal } from "./AuthModal"
 
 interface UserMenuProps {
@@ -19,14 +20,15 @@ interface UserMenuProps {
 export const UserMenu = ({ onShowHistory }: UserMenuProps) => {
   const { user, signOut } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
   const handleSignOut = async () => {
     try {
       await signOut()
       toast({
-        title: "Signed out",
-        description: "You've been successfully signed out.",
+        title: "Signed out successfully",
+        description: "You've been logged out. You can still generate 3 free recipes daily!",
       })
     } catch (error) {
       toast({
@@ -60,6 +62,10 @@ export const UserMenu = ({ onShowHistory }: UserMenuProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onClick={() => navigate("/profile")}>
+          <Settings className="w-4 h-4 mr-2" />
+          Account Settings
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onShowHistory}>
           <History className="w-4 h-4 mr-2" />
           Recipe History

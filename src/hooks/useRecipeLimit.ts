@@ -40,6 +40,8 @@ export const useRecipeLimit = () => {
       setLoading(false)
     }
 
+    // Always reload usage when user changes (including login/logout)
+    setLoading(true)
     loadUsage()
   }, [user, today])
 
