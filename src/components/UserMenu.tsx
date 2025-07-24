@@ -30,6 +30,8 @@ export const UserMenu = ({ onShowHistory }: UserMenuProps) => {
         title: "Signed out successfully",
         description: "You've been logged out. You can still generate 3 free recipes daily!",
       })
+      // Reload the page to reset all state and redirect to home
+      window.location.href = "/"
     } catch (error) {
       toast({
         title: "Error signing out",
