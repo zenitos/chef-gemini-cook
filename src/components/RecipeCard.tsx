@@ -10,6 +10,7 @@ interface Recipe {
   servings?: string;
   difficulty?: string;
   tips?: string[];
+  image?: string;
 }
 
 interface RecipeCardProps {
@@ -43,6 +44,15 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
             </Badge>
           )}
         </div>
+        {recipe.image && (
+          <div className="mt-4">
+            <img 
+              src={recipe.image} 
+              alt={`Prepared ${recipe.name}`}
+              className="w-full h-64 object-cover rounded-lg shadow-soft"
+            />
+          </div>
+        )}
       </CardHeader>
       
       <CardContent className="p-6 space-y-6">

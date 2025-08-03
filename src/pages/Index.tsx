@@ -21,6 +21,7 @@ interface Recipe {
   servings?: string;
   difficulty?: string;
   tips?: string[];
+  image?: string;
 }
 
 const Index = () => {
@@ -94,9 +95,13 @@ const Index = () => {
 
     } catch (error) {
       console.error("Error generating recipe:", error);
+      
+      // Check if it's a validation error (400 status)
+      const errorMessage = error?.message || "Failed to generate recipe. Please try again.";
+      
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to generate recipe. Please try again.",
+        title: errorMessage.includes("food-related") ? "Invalid Input" : "Error",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

@@ -14,6 +14,7 @@ interface Recipe {
   servings?: string;
   difficulty?: string;
   tips?: string[];
+  image?: string;
 }
 
 Deno.serve(async (req) => {
@@ -66,6 +67,29 @@ Deno.serve(async (req) => {
     const genAI = new GoogleGenerativeAI(geminiApiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
+    // First, validate if the input is food-related
+    const validationPrompt = `Analyze this input: "${query}". 
+    
+    Determine if this input is related to food, cooking, recipes, ingredients, cuisine types, or culinary topics. 
+    
+    Respond with ONLY "VALID" if the input is food-related, or "INVALID" if it contains non-food items or is completely unrelated to cooking/food.
+    
+    Examples of VALID inputs: "chicken curry", "pasta", "Italian cuisine", "tomatoes and garlic", "chocolate cake recipe"
+    Examples of INVALID inputs: "cars", "programming", "football", "mathematics", "vacation planning"`
+
+    const validationResult = await model.generateContent(validationPrompt)
+    const validationResponse = await validationResult.response
+    const validationText = validationResponse.text().trim()
+
+    if (validationText !== "VALID") {
+      return new Response(
+        JSON.stringify({ 
+          error: "Please enter food-related items only. Try ingredients, recipe names, food types, or cuisine styles (e.g., 'chicken curry', 'Italian pasta', 'chocolate cake')." 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     const prompt = `Create a detailed recipe based on: "${query}". 
     
     Please respond with a JSON object in this exact format:
@@ -99,6 +123,22 @@ Deno.serve(async (req) => {
       )
     }
 
+    // Generate image of the prepared recipe
+    try {
+      const imagePrompt = `A beautiful, appetizing photo of ${recipe.name}, professionally plated and photographed, high quality food photography, well-lit, attractive presentation`
+      
+      const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('generate-recipe-image', {
+        body: { prompt: imagePrompt }
+      })
+
+      if (!imageError && imageData?.image) {
+        recipe.image = imageData.image
+      }
+    } catch (imageError) {
+      console.error('Failed to generate recipe image:', imageError)
+      // Continue without image if generation fails
+    }
+
     // Save recipe to database (only for authenticated users)
     if (!isGuest && user) {
       const { error: insertError } = await supabaseClient
@@ -113,6 +153,7 @@ Deno.serve(async (req) => {
           difficulty: recipe.difficulty,
           tips: recipe.tips,
           search_query: query,
+          image: recipe.image,
         })
 
       if (insertError) {
