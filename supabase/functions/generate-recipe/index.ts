@@ -123,20 +123,17 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Generate image of the prepared recipe
+    // Generate image of the prepared recipe using a simpler approach
     try {
-      const imagePrompt = `A beautiful, appetizing photo of ${recipe.name}, professionally plated and photographed, high quality food photography, well-lit, attractive presentation`
-      
-      const { data: imageData, error: imageError } = await supabaseClient.functions.invoke('generate-recipe-image', {
-        body: { prompt: imagePrompt }
-      })
-
-      if (!imageError && imageData?.image) {
-        recipe.image = imageData.image
-      }
+      // Create a direct Unsplash URL for food images
+      const cleanRecipeName = recipe.name.replace(/[^a-zA-Z\s]/g, '').trim().replace(/\s+/g, '+');
+      const imageUrl = `https://source.unsplash.com/800x600/?${cleanRecipeName}+food+recipe+delicious`;
+      recipe.image = imageUrl;
+      console.log('Generated image URL:', imageUrl);
     } catch (imageError) {
-      console.error('Failed to generate recipe image:', imageError)
+      console.error('Failed to generate recipe image:', imageError);
       // Continue without image if generation fails
+      recipe.image = `https://source.unsplash.com/800x600/?food+recipe+delicious`;
     }
 
     // Save recipe to database (only for authenticated users)
