@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string
           email: string
@@ -24,6 +25,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email: string
@@ -32,6 +34,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string
@@ -47,6 +50,7 @@ export type Database = {
           created_at: string
           difficulty: string | null
           id: string
+          image: string | null
           ingredients: Json
           instructions: Json
           name: string
@@ -60,6 +64,7 @@ export type Database = {
           created_at?: string
           difficulty?: string | null
           id?: string
+          image?: string | null
           ingredients: Json
           instructions: Json
           name: string
@@ -73,6 +78,7 @@ export type Database = {
           created_at?: string
           difficulty?: string | null
           id?: string
+          image?: string | null
           ingredients?: Json
           instructions?: Json
           name?: string
