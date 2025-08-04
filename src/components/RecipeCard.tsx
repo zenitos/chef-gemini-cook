@@ -44,16 +44,18 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
             </Badge>
           )}
         </div>
-        {recipe.image && (
-          <div className="mt-4">
-            <img 
-              src={recipe.image} 
-              alt={`Prepared ${recipe.name}`}
-              className="w-full h-64 object-cover rounded-lg shadow-soft"
-            />
-          </div>
-        )}
       </CardHeader>
+      
+      {/* Recipe Image Section */}
+      {recipe.image && (
+        <div className="px-6 pb-6">
+          <img 
+            src={recipe.image} 
+            alt={`Prepared ${recipe.name}`}
+            className="w-full h-64 object-cover rounded-lg shadow-soft"
+          />
+        </div>
+      )}
       
       <CardContent className="p-6 space-y-6">
         {/* Ingredients Section */}
