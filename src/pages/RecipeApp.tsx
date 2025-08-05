@@ -109,40 +109,42 @@ const RecipeApp = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header onShowHistory={() => setShowHistory(true)} />
       
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12 space-y-12">
-        {/* Recipe Limit Banner */}
-        {!limitLoading && (
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-12 space-y-12">
+          {/* Recipe Limit Banner */}
+          {!limitLoading && (
+            <div className="animate-slide-up">
+              <RecipeLimitBanner
+                usage={usage}
+                maxRecipes={maxRecipes}
+                remainingRecipes={remainingRecipes}
+                onSignUp={() => setShowAuthModal(true)}
+              />
+            </div>
+          )}
+
+          {/* Search Section */}
           <div className="animate-slide-up">
-            <RecipeLimitBanner
-              usage={usage}
-              maxRecipes={maxRecipes}
+            <RecipeSearch 
+              onSearch={handleSearch} 
+              isLoading={isLoading}
+              canGenerate={canGenerateRecipe}
               remainingRecipes={remainingRecipes}
-              onSignUp={() => setShowAuthModal(true)}
             />
           </div>
-        )}
 
-        {/* Search Section */}
-        <div className="animate-slide-up">
-          <RecipeSearch 
-            onSearch={handleSearch} 
-            isLoading={isLoading}
-            canGenerate={canGenerateRecipe}
-            remainingRecipes={remainingRecipes}
-          />
+          {/* Recipe Display */}
+          {recipe && (
+            <div className="animate-fade-in">
+              <RecipeCard recipe={recipe} />
+            </div>
+          )}
         </div>
-
-        {/* Recipe Display */}
-        {recipe && (
-          <div className="animate-fade-in">
-            <RecipeCard recipe={recipe} />
-          </div>
-        )}
-      </div>
+      </main>
       
       <Footer />
       
