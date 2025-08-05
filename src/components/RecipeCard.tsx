@@ -53,6 +53,13 @@ export const RecipeCard = ({ recipe }: RecipeCardProps) => {
             src={recipe.image} 
             alt={`Prepared ${recipe.name}`}
             className="w-full h-64 object-cover rounded-lg shadow-soft"
+            onError={(e) => {
+              console.error('Image failed to load:', recipe.image);
+              e.currentTarget.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', recipe.image);
+            }}
           />
         </div>
       )}
