@@ -5,6 +5,7 @@ export interface UserProfile {
   email: string;
   full_name?: string;
   avatar_url?: string;
+  address?: string;
   created_at: string;
   updated_at: string;
 }
@@ -37,7 +38,7 @@ export class ProfileService {
   /**
    * Update the current user's profile
    */
-  static async updateProfile(updates: Partial<Pick<UserProfile, 'full_name' | 'avatar_url'>>): Promise<UserProfile> {
+  static async updateProfile(updates: Partial<Pick<UserProfile, 'full_name' | 'avatar_url' | 'address'>>): Promise<UserProfile> {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {

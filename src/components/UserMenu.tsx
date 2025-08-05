@@ -66,7 +66,7 @@ export const UserMenu = ({ onShowHistory }: UserMenuProps) => {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onClick={() => navigate("/profile")}>
           <Settings className="w-4 h-4 mr-2" />
-          Account Settings
+          User Profile
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onShowHistory}>
           <History className="w-4 h-4 mr-2" />
