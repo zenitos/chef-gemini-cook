@@ -7,10 +7,13 @@ import { Header } from "@/components/Header";
 import { RecipeHistory } from "@/components/RecipeHistory";
 import { RecipeLimitBanner } from "@/components/RecipeLimitBanner";
 import { AuthModal } from "@/components/AuthModal";
+import { FeedbackModal } from "@/components/FeedbackModal";
 import { useAuth } from "@/hooks/useAuth";
 import { useRecipeLimit } from "@/hooks/useRecipeLimit";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { MessageSquare } from "lucide-react";
 
 interface Recipe {
   name: string;
@@ -46,7 +49,7 @@ const RecipeApp = () => {
         title: "Daily Limit Reached",
         description: user 
           ? "You've used all 10 recipes for today. Try again tomorrow!" 
-          : "You've used all 3 free recipes for today. Sign up for 10 recipes daily!",
+          : "You've used your free recipe for today. Sign up for 10 recipes daily!",
         variant: "destructive",
       });
       if (!user) {
@@ -84,8 +87,8 @@ const RecipeApp = () => {
       const message = user 
         ? `Found a delicious recipe! ${remainingAfterGeneration} recipes remaining today.`
         : remainingAfterGeneration > 0 
-          ? `Found a delicious recipe! ${remainingAfterGeneration} free recipes remaining today.`
-          : "Found a delicious recipe! Sign up for 10 recipes daily instead of 3!";
+          ? `Found a delicious recipe! ${remainingAfterGeneration} free recipe remaining today.`
+          : "Found a delicious recipe! Sign up for 10 recipes daily instead of 1!";
       
       toast({
         title: "Recipe Generated!",
@@ -143,6 +146,18 @@ const RecipeApp = () => {
               <RecipeCard recipe={recipe} />
             </div>
           )}
+
+          {/* Feedback Section */}
+          <div className="animate-slide-up">
+            <div className="max-w-2xl mx-auto">
+              <FeedbackModal>
+                <Button variant="outline" className="w-full py-3 rounded-2xl flex items-center justify-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  Send Feedback
+                </Button>
+              </FeedbackModal>
+            </div>
+          </div>
         </div>
       </main>
       

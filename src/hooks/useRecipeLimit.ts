@@ -12,7 +12,7 @@ export const useRecipeLimit = () => {
   const [loading, setLoading] = useState(true)
 
   const today = new Date().toDateString()
-  const maxRecipes = user ? 10 : 3 // 10 for logged-in users, 3 for guests
+  const maxRecipes = user ? 10 : 1 // 10 for logged-in users, 1 for guests
   const remainingRecipes = Math.max(0, maxRecipes - usage.count)
   const canGenerateRecipe = remainingRecipes > 0
 

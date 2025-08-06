@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { MessageSquare } from "lucide-react"
+import { MessageSquare, Star } from "lucide-react"
 
 interface FeedbackModalProps {
   children?: React.ReactNode
@@ -15,14 +15,16 @@ export const FeedbackModal = ({ children }: FeedbackModalProps) => {
   const [open, setOpen] = useState(false)
   const [feedback, setFeedback] = useState("")
   const [category, setCategory] = useState("")
+  const [rating, setRating] = useState(0)
+  const [hoveredRating, setHoveredRating] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const { toast } = useToast()
 
   const handleSubmit = async () => {
-    if (!feedback.trim() || !category) {
+    if (!feedback.trim() || !category || rating === 0) {
       toast({
         title: "Please fill all fields",
-        description: "Both feedback and category are required.",
+        description: "Feedback, category, and rating are required.",
         variant: "destructive",
       })
       return
@@ -31,7 +33,7 @@ export const FeedbackModal = ({ children }: FeedbackModalProps) => {
     setSubmitting(true)
     try {
       // In a real app, you would send this to your backend
-      console.log("Feedback submitted:", { feedback, category })
+      console.log("Feedback submitted:", { feedback, category, rating })
       
       toast({
         title: "Feedback submitted",
@@ -40,6 +42,7 @@ export const FeedbackModal = ({ children }: FeedbackModalProps) => {
       
       setFeedback("")
       setCategory("")
+      setRating(0)
       setOpen(false)
     } catch (error) {
       toast({
@@ -80,6 +83,35 @@ export const FeedbackModal = ({ children }: FeedbackModalProps) => {
                 <SelectItem value="general">General Feedback</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label>Rating</Label>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  className="focus:outline-none"
+                  onMouseEnter={() => setHoveredRating(star)}
+                  onMouseLeave={() => setHoveredRating(0)}
+                  onClick={() => setRating(star)}
+                >
+                  <Star
+                    className={`w-6 h-6 transition-colors ${
+                      star <= (hoveredRating || rating)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-muted-foreground hover:text-yellow-400"
+                    }`}
+                  />
+                </button>
+              ))}
+              {rating > 0 && (
+                <span className="ml-2 text-sm text-muted-foreground">
+                  {rating} star{rating !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
           </div>
           
           <div className="space-y-2">

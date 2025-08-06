@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Header } from "@/components/Header"
 import { Footer } from "@/components/Footer"
-import { FeedbackModal } from "@/components/FeedbackModal"
+
 import { useAuth } from "@/hooks/useAuth"
 import { useToast } from "@/hooks/use-toast"
 import { ProfileService, UserProfile } from "@/services/profileService"
@@ -166,14 +166,6 @@ const Profile = () => {
               )}
             </Button>
 
-            {/* Feedback */}
-            <div className="pt-4 border-t border-border/30">
-              <FeedbackModal>
-                <Button variant="outline" className="w-full py-3 rounded-2xl">
-                  Send Feedback
-                </Button>
-              </FeedbackModal>
-            </div>
           </CardContent>
         </Card>
       </div>
