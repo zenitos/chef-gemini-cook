@@ -13,7 +13,7 @@ import { ProfileService, UserProfile } from "@/services/profileService"
 import { User, Mail, MapPin, Save } from "lucide-react"
 
 const Profile = () => {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -23,12 +23,12 @@ const Profile = () => {
   const [savingProfile, setSavingProfile] = useState(false)
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate("/")
-    } else {
+    } else if (user) {
       loadUserData()
     }
-  }, [user, navigate])
+  }, [user, loading, navigate])
 
   const loadUserData = async () => {
     if (!user) return
