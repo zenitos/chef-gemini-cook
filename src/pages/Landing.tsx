@@ -58,9 +58,6 @@ const Landing = () => {
                     Start Cooking Magic
                   </Link>
                 </Button>
-                <div className="text-white/70 text-sm">
-                  3 free recipes daily • No signup required
-                </div>
               </div>
             </div>
           </div>
