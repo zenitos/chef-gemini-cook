@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,8 +12,47 @@ interface RecipeSearchProps {
   remainingRecipes?: number;
 }
 
+const recipeCategories = {
+  vegetarian: [
+    "Vegetarian pasta", "Caprese salad", "Mushroom risotto", "Veggie stir-fry",
+    "Spinach lasagna", "Tomato basil soup", "Cheese quesadilla", "Vegetable curry"
+  ],
+  nonVegetarian: [
+    "Chicken stir-fry", "Salmon with quinoa", "Beef tacos", "Grilled chicken",
+    "Fish and chips", "Pork chops", "Chicken curry", "Beef stroganoff"
+  ],
+  vegan: [
+    "Thai green curry", "Mediterranean salad", "Quinoa bowl", "Lentil soup",
+    "Vegan burger", "Chickpea curry", "Tofu stir-fry", "Vegan pasta"
+  ]
+};
+
 export const RecipeSearch = ({ onSearch, isLoading, canGenerate = true, remainingRecipes = 0 }: RecipeSearchProps) => {
   const [query, setQuery] = useState("");
+  const [currentRecipes, setCurrentRecipes] = useState<string[]>([]);
+
+  // Get random recipes from all categories
+  const getRandomRecipes = () => {
+    const allRecipes = [
+      ...recipeCategories.vegetarian,
+      ...recipeCategories.nonVegetarian,
+      ...recipeCategories.vegan
+    ];
+    const shuffled = [...allRecipes].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 6);
+  };
+
+  // Rotate recipes every 20 seconds
+  useEffect(() => {
+    // Set initial recipes
+    setCurrentRecipes(getRandomRecipes());
+
+    const interval = setInterval(() => {
+      setCurrentRecipes(getRandomRecipes());
+    }, 20000); // 20 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSearch = () => {
     if (!query.trim()) return;
@@ -86,20 +125,13 @@ export const RecipeSearch = ({ onSearch, isLoading, canGenerate = true, remainin
           )}
 
           <div className="flex flex-wrap gap-2 justify-center">
-            {[
-              "Chicken stir-fry",
-              "Vegetarian pasta",
-              "Salmon with quinoa",
-              "Thai green curry",
-              "Mediterranean salad",
-              "Beef tacos"
-            ].map((suggestion) => (
+            {currentRecipes.map((suggestion) => (
               <Button
                 key={suggestion}
                 variant="outline"
                 size="sm"
                 onClick={() => setQuery(suggestion)}
-                className="text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="text-xs hover:bg-accent hover:text-accent-foreground transition-colors animate-fade-in"
                 disabled={isLoading || !canGenerate}
               >
                 {suggestion}
