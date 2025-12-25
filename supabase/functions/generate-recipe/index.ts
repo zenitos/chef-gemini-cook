@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
     // Initialize Gemini AI
     const genAI = new GoogleGenerativeAI(geminiApiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
 
     // First, validate if the input is food-related
     const validationPrompt = `Analyze this input: "${query}". 
